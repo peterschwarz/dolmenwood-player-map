@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#243e35">
+  <meta name="description" content="Your personal Dolmenwood exploration map, with hex notes, visited places, and portable backups.">
+  <title>Dolmenwood · Player map</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./js/grid.js"></script>
+  <script defer src="./js/storage.js"></script>
+  <script defer src="./js/app.js"></script>
+</head>
+<body>
+  <header class="page-header">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 48 56" aria-hidden="true"><path d="M24 2 46 15v26L24 54 2 41V15Z"/><path d="m24 10-11 18h7l-9 12h26L28 28h7L24 10Zm0 30v7"/></svg>
+      <div><p class="eyebrow">A traveller’s companion</p><h1>Dolmenwood <span>Player map</span></h1></div>
+    </div>
+    <div class="backup-actions" aria-label="Map backups">
+      <button id="export" type="button">Export backup <span aria-hidden="true">↗</span></button>
+      <button id="import" type="button">Import backup</button>
+      <input id="import-file" type="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <main>
+    <div id="message" class="message" role="status" hidden></div>
+    <section id="recovery" class="recovery" aria-labelledby="recovery-title" hidden>
+      <h2 id="recovery-title">Your saved map could not be read</h2>
+      <p>The original data is preserved. Download it before resetting, or import a valid backup to replace it. Editing is paused until then.</p>
+      <button id="download-raw" type="button">Download original data</button>
+      <button id="reset-data" type="button">Reset saved map…</button>
+    </section>
+    <div class="workspace">
+      <section class="map-panel" aria-labelledby="map-title">
+        <div class="map-toolbar">
+          <h2 id="map-title">The wood awaits</h2>
+          <div class="zoom-controls" role="group" aria-label="Map zoom">
+            <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+            <output id="zoom-level" aria-label="Zoom relative to fit">100%</output>
+            <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+            <button id="zoom-fit" type="button">Fit map</button>
+          </div>
+        </div>
+        <div id="map-viewport" tabindex="0" role="region" aria-label="Scrollable Dolmenwood map" aria-describedby="map-help">
+          <div id="map-stage">
+            <img src="./Dolmenwood%20Blank%20Hex%20Map.png" width="5080" height="3627" alt="Dolmenwood player map with the original numbered hex grid and woodland boundary." draggable="false">
+            <svg id="hex-overlay" viewBox="0 0 5080 3627" role="group" aria-label="Numbered hexes"></svg>
+          </div>
+        </div>
+        <div class="map-footer"><p id="map-help">Select a hex to write its story. Arrow keys move between hexes.</p><span><i class="visited-swatch"></i> Visited <strong id="visited-count">0 / 200</strong></span></div>
+      </section>
+
+      <aside class="journal" aria-labelledby="journal-title">
+        <div class="journal-heading"><p class="eyebrow">Field journal</p><h2 id="journal-title">Hex <span id="selected-id">0101</span></h2><p>Every clearing has a story.</p></div>
+        <div class="journal-body">
+          <label for="hex-select">Jump to a hex</label>
+          <select id="hex-select" aria-label="Select a hex coordinate"></select>
+          <fieldset id="editor" disabled>
+            <legend class="sr-only">Selected hex details</legend>
+            <label class="visited-toggle" for="visited"><input id="visited" type="checkbox"><span>Visited this hex<small>Mark this place on your map</small></span></label>
+            <div class="notes-label"><label for="notes">Notes</label><span>For your eyes only</span></div>
+            <textarea id="notes" placeholder="Paths taken, curious encounters, promises to return…" spellcheck="true" aria-describedby="notes-help"></textarea>
+            <p id="notes-help" class="hint">People, places, and things worth remembering.</p>
+          </fieldset>
+          <div class="save-row"><p id="save-status" role="status" aria-live="polite">Loading saved map…</p><button id="retry-save" type="button" hidden>Retry</button></div>
+        </div>
+        <div class="journal-footnote"><span aria-hidden="true">✧</span><p>One map. Your adventures.<br>Saved in this browser. Export a backup to keep a copy.</p></div>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>Wander slowly. Keep good notes.</span><span>Local campaign · <span id="record-count">0</span> recorded hexes</span></footer>
+  </main>
+  <noscript><p class="message">JavaScript is required to select hexes and save notes. The original map is still visible.</p></noscript>
+</body>
+</html>
