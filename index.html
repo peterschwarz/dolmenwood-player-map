@@ -46,10 +46,14 @@
         <div id="map-viewport" tabindex="0" role="region" aria-label="Scrollable Dolmenwood map" aria-describedby="map-help">
           <div id="map-stage">
             <img src="./Dolmenwood%20Blank%20Hex%20Map.png" width="5080" height="3627" alt="Dolmenwood player map with the original numbered hex grid and woodland boundary." draggable="false">
-            <svg id="hex-overlay" viewBox="0 0 5080 3627" role="group" aria-label="Numbered hexes"></svg>
+            <svg id="hex-overlay" viewBox="0 0 5080 3627" role="group" aria-label="Numbered hexes">
+              <defs><clipPath id="visited-clip" clipPathUnits="userSpaceOnUse"></clipPath></defs>
+              <image id="terrain-image" width="5080" height="3627" clip-path="url(#visited-clip)" visibility="hidden" pointer-events="none" aria-hidden="true"/>
+            </svg>
           </div>
         </div>
-        <div class="map-footer"><p id="map-help">Select a hex to write its story. Arrow keys move between hexes.</p><span><i class="visited-swatch"></i> Visited <strong id="visited-count">0 / 200</strong></span></div>
+        <p id="map-image-error" class="map-image-error" role="status" hidden>Terrain image could not load. Visited hexes use green markers. Reload to try again.</p>
+        <div class="map-footer"><p id="map-help">Select a hex to write its story. Arrow keys move between hexes.</p><span>Visited · terrain revealed <strong id="visited-count">0 / 200</strong></span></div>
       </section>
 
       <aside class="journal" aria-labelledby="journal-title">
@@ -59,7 +63,7 @@
           <select id="hex-select" aria-label="Select a hex coordinate"></select>
           <fieldset id="editor" disabled>
             <legend class="sr-only">Selected hex details</legend>
-            <label class="visited-toggle" for="visited"><input id="visited" type="checkbox"><span>Visited this hex<small>Mark this place on your map</small></span></label>
+            <label class="visited-toggle" for="visited"><input id="visited" type="checkbox"><span>Visited this hex<small>Reveal terrain, roads, and tracks</small></span></label>
             <div class="notes-label"><label for="notes">Notes</label><span>For your eyes only</span></div>
             <textarea id="notes" placeholder="Paths taken, curious encounters, promises to return…" spellcheck="true" aria-describedby="notes-help"></textarea>
             <p id="notes-help" class="hint">People, places, and things worth remembering.</p>

@@ -1,12 +1,12 @@
 # Dolmenwood player map
 
-A dependency-free, static player map with 200 selectable numbered hexes, a personal field journal, visited markers, and JSON backups. The supplied PNG is preserved unchanged; an SVG overlay provides the interactions.
+A dependency-free, static player map with 200 selectable numbered hexes, a personal field journal, terrain revealed in visited hexes, and JSON backups. Both supplied PNGs are preserved unchanged; an SVG overlay clips the terrain artwork and provides the interactions.
 
 ## Open the map
 
 Open `index.html` in a modern browser. No installation, build step, application server, or account is required. All assets are included in this directory; the app makes no external requests.
 
-For static hosting, upload this entire directory to your host. It works at the host’s root or at a subpath such as `https://example.com/dolmenwood-player-map/`. Keep the PNG’s filename and the directory structure intact. Every asset reference is relative.
+For static hosting, upload this entire directory to your host. It works at the host’s root or at a subpath such as `https://example.com/dolmenwood-player-map/`. Keep both PNG filenames and the directory structure intact. Every asset reference is relative.
 
 An optional local HTTP preview, from the parent directory:
 
@@ -19,7 +19,8 @@ Then open `http://localhost:8000/dolmenwood-player-map/`. HTTP hosting gives bro
 ## Use it
 
 - Click or tap a numbered hex, or choose its coordinate from **Jump to a hex**. Unnumbered margin hexes are excluded, while numbered hexes outside the woodland boundary remain selectable.
-- Write plain-text notes and check **Visited this hex** to give that hex a translucent green fill. The selected hex has an amber outline.
+- Write plain-text notes and check **Visited this hex** to reveal its terrain from `Dolmenwood VTT Hex Map.png`. Unchecking restores the blank map in that hex. Terrain, waterways, roads, tracks, and coordinates remain as drawn; the artwork omits location names, settlement icons, and ley lines. Unvisited hexes and unnumbered margins stay blank. The selected hex has an amber outline; hovering adds an outline without tinting the artwork.
+- While the terrain image loads, visited hexes use translucent green markers. If it fails to load, those markers remain and a separate map-image message appears; save status is unaffected. Reload to retry the image.
 - Notes save after a 400 ms typing pause. Visited changes save immediately. Switching hexes, exporting, importing, hiding the tab, or leaving the page flushes pending edits.
 - Use **+**, **−**, and **Fit map** to zoom from 100% to 800% of the fitted size. Scroll the map with a mouse, trackpad, touch, or the scrollable region’s keyboard controls. Coordinate jumps bring the chosen hex into view.
 - Tab to the selected hex. Arrow keys move to a nearby hex and select it; Enter or Space selects the focused hex. Home and End select the first and last numbered hex. A blue dashed outline indicates keyboard focus. The coordinate selector is an alternative to navigating the SVG.
@@ -33,7 +34,7 @@ The save indicator shows saving, saved, or failure states. Data lives in this br
 
 **Import backup** validates the map, schema version, every coordinate, and every record before asking to replace the current campaign. It replaces the whole dataset rather than merging. Cancelling or submitting an invalid file leaves the current campaign intact.
 
-If a write fails, your edits remain in memory and visited colors still update. Use **Retry** or export a backup before closing the page. The app attempts to warn before leaving with unsaved edits, but browser shutdowns and mobile tab eviction cannot guarantee a warning.
+If a write fails, your edits remain in memory and revealed terrain still updates. Use **Retry** or export a backup before closing the page. The app attempts to warn before leaving with unsaved edits, but browser shutdowns and mobile tab eviction cannot guarantee a warning.
 
 If existing data is unreadable or has an unsupported schema, the app pauses editing and preserves the original stored string. **Download original data** saves that exact string. **Reset saved map…** requires confirmation before replacing it with an empty campaign; importing a valid backup also requires confirmation. Recovery never silently overwrites unreadable data.
 
@@ -45,9 +46,10 @@ styles.css                   Responsive map and journal layout
 js/grid.js                   Image-space geometry and numbered coverage
 js/storage.js                Dataset validation, persistence, and autosave
 js/app.js                    Selection, zoom, journal, and backup UI
-Dolmenwood Blank Hex Map.png  Original 5080 × 3627 image
+Dolmenwood Blank Hex Map.png  Original 5080 × 3627 blank base image
+Dolmenwood VTT Hex Map.png    Unchanged 5080 × 3627 terrain artwork
 tests/data.test.cjs           Dependency-free grid/persistence checks
-tests/browser.cjs             Optional browser interaction checks
+tests/browser.cjs            Optional browser interaction checks
 ```
 
 The JavaScript modules are isolated closures loaded as ordered deferred classic scripts. This keeps responsibilities separate while supporting direct file opening without the restrictions of browser ES-module imports over `file://`. Notes are assigned to textarea values and text content, never interpreted as HTML.
@@ -70,7 +72,7 @@ One dataset is stored under `dolmenwood-player-map:local-campaign:v1`:
 
 Records are keyed by valid four-digit hex IDs. Timestamps are UTC ISO strings with milliseconds. Empty notes and an unvisited state are valid and persist. An untouched hex has no record. Imports preserve timestamps and normalize accepted records to the documented fields.
 
-The grid uses original image pixels: first center `(447.6, 274.65)`, column spacing `232.515`, row spacing `268.25`, and a half-row offset for even columns. Explicit row counts per column exclude the unnumbered margins. The SVG and image always share the same scale.
+The grid uses original image pixels: first center `(447.6, 274.65)`, column spacing `232.515`, row spacing `268.25`, and a half-row offset for even columns. Explicit row counts per column exclude the unnumbered margins. The SVG and both images always share the same scale. One noninteractive SVG image sits above the blank base and below the accessible hex controls. A `userSpaceOnUse` clip path contains exactly the visited hex polygons, including before the image loads. Reveals derive directly from `records[id].visited`: existing saves reveal automatically, and imports replace the revealed set along with campaign data. Storage keys, schema, backup format, adapters, and the 400 ms notes debounce are unchanged.
 
 `CampaignStore` accepts an adapter with asynchronous `read()` and `write(dataset)` methods. `read()` returns the serialized dataset or `null`; `write()` persists a complete snapshot or rejects. Writes are serialized, and each snapshot retains the edits’ original hex IDs. The local adapter also has a synchronous `writeOnExit(dataset)` hook to flush during page teardown without waiting for a promise. A future remote adapter would need its own durable queue and page-exit strategy.
 
@@ -92,4 +94,4 @@ The optional browser suite uses an externally installed Playwright and Chromium.
 node tests/browser.cjs /absolute/path/to/playwright /absolute/path/to/chromium /tmp/dolmenwood-qa
 ```
 
-Verified with Chromium: all 200 polygons; raster alignment at corners, center, and alternating columns; mouse and keyboard selection; visible keyboard focus; zoom, fit, and scrolling; desktop and 390 px mobile layouts; debounce and immediate saves; rapid switching; reload and page-exit persistence; empty, multiline, and plain-text notes; pending-edit export; backup round trips; import cancellation and invalid imports; corrupt-data preservation, raw download, and explicit reset; failed-write export; root and subpath hosting; and direct-file loading. The data suite additionally checks asynchronous write ordering and successful retry after a storage failure. Other browsers have not been independently exercised.
+Verified with Chromium: all 200 polygons; alignment of both rasters at corners, center, and alternating columns; rendered-pixel checks for no visits, one visit, adjacent visits and their shared edge, all visits, unchecking, blank neighbors, and unrevealed margins; mouse and keyboard selection; visible keyboard focus; zoom, fit, and scrolling; desktop and 390 px mobile layouts at fit and maximum zoom; debounce and immediate saves; rapid switching; reload and page-exit persistence; empty, multiline, and plain-text notes; pending-edit export; backup round trips with replacement of revealed hexes; import cancellation and invalid imports preserving reveals; corrupt-data preservation, raw download, and explicit reset; failed-write export and in-memory reveals; slow-image fallback with edits during loading; failed-image fallback with independent save errors; both assets at root and subpath hosting and through direct-file loading. The data suite additionally checks asynchronous write ordering and successful retry after a storage failure. Other browsers have not been independently exercised.

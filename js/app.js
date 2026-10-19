@@ -6,7 +6,10 @@
   const viewport = $('map-viewport');
   const stage = $('map-stage');
   const overlay = $('hex-overlay');
+  const visitedClip = $('visited-clip');
+  const terrainImage = $('terrain-image');
   const polygons = new Map();
+  const revealed = new Map();
   let selectedId = '0101';
   let zoom = 1;
   let scale = 1;
@@ -37,6 +40,15 @@
       const record = store.data.records[id];
       const isVisited = record?.visited === true;
       if (isVisited) visited += 1;
+      if (isVisited && !revealed.has(id)) {
+        const clip = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        clip.setAttribute('points', grid.byId.get(id).points);
+        visitedClip.append(clip);
+        revealed.set(id, clip);
+      } else if (!isVisited && revealed.has(id)) {
+        revealed.get(id).remove();
+        revealed.delete(id);
+      }
       polygon.classList.toggle('visited', isVisited);
       polygon.classList.toggle('selected', id === selectedId);
       polygon.setAttribute('aria-pressed', String(id === selectedId));
@@ -47,6 +59,20 @@
     $('record-count').textContent = Object.keys(store.data.records).length;
   }
   const store = new storage.CampaignStore(undefined, renderState);
+
+  // Attach handlers before requesting the raster, including when it is cached.
+  // The empty clip and hidden image prevent a full-map flash on first render.
+  terrainImage.addEventListener('load', () => {
+    terrainImage.setAttribute('visibility', 'visible');
+    overlay.classList.add('terrain-ready');
+    $('map-image-error').hidden = true;
+  });
+  terrainImage.addEventListener('error', () => {
+    terrainImage.setAttribute('visibility', 'hidden');
+    overlay.classList.remove('terrain-ready');
+    $('map-image-error').hidden = false;
+  });
+  terrainImage.setAttribute('href', './Dolmenwood%20VTT%20Hex%20Map.png');
 
   function revealHex(id) {
     const hex = grid.byId.get(id);
